@@ -2,6 +2,7 @@
 
 // change require to es6 import style
 import $ from 'jquery';
+import './style.scss';
 
 let count = 1;
 setInterval(() => {
