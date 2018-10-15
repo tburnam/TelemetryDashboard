@@ -18,6 +18,9 @@ module.exports = {
   devServer: {
     contentBase: path.join(__dirname, 'public'),
     historyApiFallback: true,
+    // disableHostCheck: true,
+    // host: '0.0.0.0',
+    // port: 8080,
   },
   module: {
     rules: [
@@ -47,6 +50,41 @@ module.exports = {
         test: /\.js$/,
         exclude: /node_modules/,
         use: ['babel-loader', 'eslint-loader'],
+      },
+      {
+        test: /\.less$/,
+        use: ['style-loader', { loader: 'css-loader', options: { sourceMap: 1 } }, 'postcss-loader', 'less-loader'],
+      },
+      {
+        test: /\.jsx$/,
+        loader: 'babel-loader',
+        exclude: /node_modules/,
+        options: {
+          cacheDirectory: true,
+          plugins: [
+            'transform-decorators-legacy',
+            'add-module-exports',
+            ['import', { libraryName: 'antd', style: true }],
+            ['react-transform', {
+              transforms: [
+                {
+                  transform: 'react-transform-hmr',
+                  imports: ['react'],
+                  locals: ['module'],
+                },
+              ],
+            }],
+          ],
+          presets: ['es2015', 'stage-0', 'react'],
+        },
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+      },
+      {
+        test: /\.svg$/,
+        loader: 'svg-inline-loader',
       },
     ],
   },

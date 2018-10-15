@@ -6,3 +6,38 @@ body {
 .active {
   color: pink;
 }
+
+#title {
+  font-size: 24px;
+}
+
+#mainTable {
+  padding: 30px;
+}
+
+#debug {
+  color: rgb(38, 160, 255);
+}
+
+#verbose {
+  color: black;
+}
+
+#info {
+  color: rgb(25, 255, 102);
+}
+
+#warn {
+  color: rgb(252, 231, 40);
+}
+
+#error {
+  color: rgb(226, 0, 0);
+}
+
+#tags {
+  display: flex;
+  flex-flow: row;
+  align-content: center;
+  align-items: center;
+}
