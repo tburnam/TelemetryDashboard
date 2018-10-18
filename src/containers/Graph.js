@@ -2,20 +2,13 @@ import React, { Component } from 'react';
 import { Table, Tag } from 'antd';
 import moment from 'moment';
 
-// const iplocation = require('iplocation');
-
+const https = require('https');
 
 class Graph extends Component {
 
   constructor(props) {
     super(props);
 
-    this.state = {
-      ipLocations: {},
-    };
-  }
-
-  render() {
     const data = [
       {
         level: 'info',
@@ -23,7 +16,7 @@ class Graph extends Component {
         action: 'Starting',
         message: 'This is a message',
         tags: 'one, two, three',
-        file: 'server.js',
+        file: 'yolo.js',
         timestamp: '1537912932241',
       },
       {
@@ -46,15 +39,56 @@ class Graph extends Component {
       },
     ];
 
+    const setIPLocation = (ip) => {
+      https.get(`https://ipapi.co/${ip}/json/`, (resp) => {
+        let body = '';
+        resp.on('data', (res) => {
+          body += res;
+        });
+
+        resp.on('end', () => {
+          const loc = JSON.parse(body);
+        //   console.log(`${loc.city}, ${loc.region_code}, ${loc.country}`);
+          const ipLocationCopy = this.state.ipLocations;
+          ipLocationCopy[ip] = `${loc.city}, ${loc.region_code}, ${loc.country}`;
+
+          this.setState({
+            ipLocations: ipLocationCopy,
+          });
+        });
+      });
+    };
+
     const processData = (inputData) => {
       const processedData = [];
       for (const record of inputData) {
+        // if (!(record.source_copy in this.state.ipLocations)) {
+              // Add duplicate record for location column
         record.source_copy = record.source;
+
+              // Get location name for IP
+        setIPLocation(record.source_copy);
+
+              // Add new record
         processedData.push(record);
+        // }
       }
       return processedData;
     };
 
+    const processedData = processData(data);
+
+    this.state = {
+      ipLocations: {},
+      data: processedData,
+    };
+  }
+
+  componentDidMount() {
+
+  }
+
+  render() {
     const getIPLocation = (ip) => {
       if (ip in this.state.ipLocations) {
         return this.state.ipLocations[ip];
@@ -62,8 +96,6 @@ class Graph extends Component {
         return 'Can\'t locate';
       }
     };
-
-    const processedData = processData(data);
 
     const columns = [{
       title: 'Level',
@@ -91,7 +123,7 @@ class Graph extends Component {
         // specify the condition of filtering result
         // here is that finding the name started with `value`
       onFilter: (value, record) => { return record.level.indexOf(value) > -1; },
-      sorter: (a, b) => a.name.length - b.name.length,
+      sorter: (a, b) => a.level.length - b.level.length,
       render: (level) => {
         let color = 'geekblue';
         switch (level) {
@@ -128,39 +160,7 @@ class Graph extends Component {
       dataIndex: 'source_copy',
       sorter: (a, b) => a > b,
       render: (ip) => {
-        // iplocation(ip)
-        // .then((res) => {
-        //   const newIPLocations = this.state.ipLocations;
-        //   newIPLocations[ip] = res;
-
-        //   this.setState({
-        //     ipLocations: newIPLocations,
-        //   });
-
-        //   /* res:cl
-
-        //     {
-        //       as: 'AS11286 KeyBank National Association',
-        //       city: 'Cleveland',
-        //       country: 'United States',
-        //       countryCode: 'US',
-        //       isp: 'KeyBank National Association',
-        //       lat: 41.4875,
-        //       lon: -81.6724,
-        //       org: 'KeyBank National Association',
-        //       query: '156.77.54.32',
-        //       region: 'OH',
-        //       regionName: 'Ohio',
-        //       status: 'success',
-        //       timezone: 'America/New_York',
-        //       zip: '44115'
-        //     }
-
-        //   */
-        // })
-        // .catch((err) => {
-        //   console.error(err);
-        // });
+        // console.log(ip);
         return (<span>{getIPLocation(ip)}</span>);
       },
     },
@@ -188,7 +188,7 @@ class Graph extends Component {
     }, {
       title: 'Timestamp',
       dataIndex: 'timestamp',
-      sorter: (a, b) => { return (new Date(a) > new Date(b)); },
+      sorter: (a, b) => b.timestamp - a.timestamp,
       render: (timestamp) => {
         return (
           <span id="timestamp">
@@ -202,7 +202,7 @@ class Graph extends Component {
       <div>
         <center><span id="title">GreenTiger Dev</span></center>
         <div id="mainTable">
-          <Table columns={columns} dataSource={processedData} />
+          <Table columns={columns} dataSource={this.state.data} />
         </div>
       </div>
     );
